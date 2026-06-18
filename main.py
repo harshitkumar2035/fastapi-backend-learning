@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import logging 
 import sys
 import time
+from typing import List
 
 
 # ------ Logging -----
@@ -60,6 +61,17 @@ class User(BaseModel):
     name: str
     age: int
 
+class Task(BaseModel):
+    id: int
+    title: str
+    completed: bool = False
+
+tasks_db = [
+    Task(id=1, title="Buy groceries"),
+    Task(id=2, title="Read a book"),
+    Task(id=3, title="Write unit tests", completed=True),
+]
+
 @app.get("/")
 def home():
     logger.info("Home endpoint called")
@@ -70,4 +82,35 @@ def create_user(user: User):
     logger.info(f"User created: {user.name}, age {user.age}")
     return {"msg": "User created successfully", "user": user}
 
+@app.get("/tasks", response_model=List[Task])
+def get_tasks():
+    return tasks_db
 
+@app.get("/tasks/{task_id}", response_model=Task)
+def get_task(task_id: int):
+    for task in tasks_db:
+        if task.id == task_id:
+            return task
+    
+    raise HTTPException(status_code=404, detail="Task not found")
+    
+
+@app.put("/tasks/{task_id}", response_model=Task)
+def update_task(task_id: int, updated_task: Task):
+    for index, task in enumerate(tasks_db):
+        if task.id == task_id:
+            updated_task.id = task_id
+            tasks_db[index] = updated_task
+            return updated_task
+    
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    for index, task in enumerate(tasks_db):
+        if task.id == task_id:
+            tasks_db.pop(index)
+            return {"message": "Task deleted"}
+    
+    raise HTTPException(status_code=404, detail="Task not found")
