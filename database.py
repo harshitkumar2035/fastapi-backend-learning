@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 DATABASE_URL = "mysql+pymysql://root:harshit@localhost/fastapi_db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(
@@ -7,4 +7,4 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
-
+base = declarative_base()
